@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Users, Briefcase, UserCheck, LogOut } from "lucide-react";
+import { Shield, Users, Briefcase, UserCheck, LogOut, Eye, Loader2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -20,12 +22,26 @@ interface Stats {
   totalJobs: number;
 }
 
+interface Job {
+  id: string;
+  skillType: string;
+  requiredWorkers: number;
+  budgetPerWorker: number;
+  status: string;
+  date?: string;
+  duration?: string;
+}
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [owners, setOwners] = useState<User[]>([]);
   const [workers, setWorkers] = useState<User[]>([]);
   const [stats, setStats] = useState<Stats>({ totalWorkers: 0, totalOwners: 0, totalJobs: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedOwner, setSelectedOwner] = useState<User | null>(null);
+  const [ownerJobs, setOwnerJobs] = useState<Job[]>([]);
+  const [isJobsModalOpen, setIsJobsModalOpen] = useState(false);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
 
   useEffect(() => {
     // Check if user is admin
@@ -138,6 +154,32 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleViewJobs = async (owner: User) => {
+    const token = localStorage.getItem("token");
+    setSelectedOwner(owner);
+    setIsLoadingJobs(true);
+    setIsJobsModalOpen(true);
+    
+    try {
+      const response = await fetch(`http://localhost:8080/api/admin/owners/${owner.id}/jobs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOwnerJobs(data);
+      } else {
+        toast.error("Failed to load jobs");
+        setOwnerJobs([]);
+      }
+    } catch (error) {
+      toast.error("Error fetching jobs");
+      setOwnerJobs([]);
+    } finally {
+      setIsLoadingJobs(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -217,6 +259,7 @@ const AdminDashboard = () => {
                   <TableHead>Email</TableHead>
                   <TableHead>Phone</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Jobs</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -239,6 +282,16 @@ const AdminDashboard = () => {
                         }`}>
                           {owner.status || "ACTIVE"}
                         </span>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleViewJobs(owner)}
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Jobs
+                        </Button>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
@@ -342,6 +395,84 @@ const AdminDashboard = () => {
             </Table>
           </CardContent>
         </Card>
+
+        {/* View Jobs Modal */}
+        <Dialog open={isJobsModalOpen} onOpenChange={setIsJobsModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-primary" />
+                Jobs Posted by {selectedOwner?.username}
+              </DialogTitle>
+              <DialogDescription>
+                View all job postings created by this owner
+              </DialogDescription>
+            </DialogHeader>
+
+            {isLoadingJobs ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : ownerJobs.length === 0 ? (
+              <div className="text-center py-12">
+                <Briefcase className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">No jobs posted by this owner yet.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 mt-4">
+                {ownerJobs.map((job) => (
+                  <Card key={job.id} className="p-4 border border-border shadow-sm hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2 flex-1">
+                        <h3 className="font-semibold text-lg text-foreground">{job.skillType}</h3>
+                        <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4" />
+                            <span>Workers: {job.requiredWorkers}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">Budget:</span>
+                            <span>₹{job.budgetPerWorker}/worker</span>
+                          </div>
+                          {job.date && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Date:</span>
+                              <span>{job.date}</span>
+                            </div>
+                          )}
+                          {job.duration && (
+                            <div className="flex items-center gap-1">
+                              <span className="font-medium">Duration:</span>
+                              <span>{job.duration}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Badge
+                        variant={
+                          job.status === "OPEN"
+                            ? "default"
+                            : job.status === "PENDING"
+                            ? "secondary"
+                            : "outline"
+                        }
+                        className={`ml-4 ${
+                          job.status === "OPEN"
+                            ? "bg-green-100 text-green-800 border-green-200"
+                            : job.status === "PENDING"
+                            ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                            : "bg-red-100 text-red-800 border-red-200"
+                        }`}
+                      >
+                        {job.status}
+                      </Badge>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
