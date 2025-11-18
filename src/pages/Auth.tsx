@@ -14,10 +14,13 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get("role");
 
-  const [username, setUsername] = useState("");   // ⬅️ UPDATED
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
+  const [panFile, setPanFile] = useState<File | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [selectedRole, setSelectedRole] = useState<"owner" | "worker" | null>(
     roleParam === "owner" || roleParam === "worker" ? roleParam : null
   );
@@ -33,22 +36,42 @@ const Auth = () => {
       return;
     }
 
+    if (!aadhaarFile || !panFile || !profilePhoto) {
+      toast.error("Please upload all required documents");
+      return;
+    }
+
     try {
-      const payload = {
-        username,    // ⬅️ UPDATED
-        email,
-        phone,
-        password,
-        role: selectedRole.toUpperCase() as "OWNER" | "WORKER" | "ADMIN",
-      };
+      const formData = new FormData();
+      formData.append("username", username);
+      formData.append("email", email);
+      formData.append("phone", phone);
+      formData.append("password", password);
+      formData.append("role", selectedRole.toUpperCase());
+      formData.append("aadhaar", aadhaarFile);
+      formData.append("pan", panFile);
+      formData.append("profilePhoto", profilePhoto);
 
-      const res = await registerUser(payload);
+      const response = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        body: formData,
+      });
 
-      toast.success("Account created successfully!");
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Registration failed");
+      }
 
-      if (res?.token) localStorage.setItem("token", res.token);
-
-      navigate(selectedRole === "owner" ? "/owner-dashboard" : "/worker-dashboard");
+      toast.success("Registration submitted! Your documents are pending admin verification.");
+      
+      // Clear form
+      setUsername("");
+      setEmail("");
+      setPhone("");
+      setPassword("");
+      setAadhaarFile(null);
+      setPanFile(null);
+      setProfilePhoto(null);
 
     } catch (error: any) {
       toast.error(error.message || "Registration failed!");
@@ -78,11 +101,20 @@ const Auth = () => {
       toast.success("Signed in successfully!");
 
       if (res?.token) localStorage.setItem("token", res.token);
+      if (res?.role) localStorage.setItem("role", res.role);
 
       navigate(selectedRole === "owner" ? "/owner-dashboard" : "/worker-dashboard");
 
     } catch (error: any) {
-      toast.error(error.message || "Invalid email or password!");
+      const errorMsg = error.message || "Invalid email or password!";
+      
+      if (errorMsg.includes("pending") || errorMsg.includes("verification")) {
+        toast.error("Your documents are pending admin verification. Please wait for approval.");
+      } else if (errorMsg.includes("disabled") || errorMsg.includes("inactive")) {
+        toast.error("Your account has been disabled by admin. Please contact support.");
+      } else {
+        toast.error(errorMsg);
+      }
     }
   };
 
@@ -211,6 +243,40 @@ const Auth = () => {
                       required
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label>Profile Photo *</Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setProfilePhoto(e.target.files?.[0] || null)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Aadhaar Card *</Label>
+                    <Input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setAadhaarFile(e.target.files?.[0] || null)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>PAN Card *</Label>
+                    <Input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setPanFile(e.target.files?.[0] || null)}
+                      required
+                    />
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    * Documents will be verified by admin before account activation
+                  </p>
 
                   <Button type="submit" className="w-full" size="lg">
                     Create Account

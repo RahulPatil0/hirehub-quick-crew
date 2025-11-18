@@ -44,15 +44,36 @@ const AdminDashboard = () => {
   const [isLoadingJobs, setIsLoadingJobs] = useState(false);
 
   useEffect(() => {
-    // Check if user is admin
     const role = localStorage.getItem("role");
     if (role !== "ADMIN") {
       navigate("/admin/login");
       return;
     }
 
+    // Redirect to pending verifications if there are any
+    checkPendingVerifications();
     fetchDashboardData();
   }, [navigate]);
+
+  const checkPendingVerifications = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const response = await fetch("http://localhost:8080/api/admin/pending-users", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.length > 0) {
+          // Optionally redirect to pending verifications on first login
+          // navigate("/admin/pending-verifications");
+        }
+      }
+    } catch (error) {
+      // Silent fail
+    }
+  };
 
   const fetchDashboardData = async () => {
     const token = localStorage.getItem("token");
@@ -215,7 +236,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="shadow-elegant">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Workers</CardTitle>
@@ -241,6 +262,19 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-primary">{stats.totalJobs}</div>
+            </CardContent>
+          </Card>
+          <Card 
+            className="shadow-elegant cursor-pointer hover:shadow-lg transition-shadow border-2 border-primary/20"
+            onClick={() => navigate("/admin/pending-verifications")}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending Verifications</CardTitle>
+              <UserCheck className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-primary">View</div>
+              <p className="text-xs text-muted-foreground mt-1">Review documents</p>
             </CardContent>
           </Card>
         </div>
