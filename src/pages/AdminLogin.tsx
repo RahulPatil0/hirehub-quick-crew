@@ -38,7 +38,7 @@ const AdminLogin = () => {
       localStorage.setItem("role", data.role);
       
       toast.success("Login successful!");
-      navigate("/admin/dashboard");
+      navigate("/admin/pending-verifications");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed. Please check your credentials.");
     } finally {

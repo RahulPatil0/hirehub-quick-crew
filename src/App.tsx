@@ -10,6 +10,7 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import HireLabour from "./pages/HireLabour";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import PendingVerifications from "./pages/PendingVerifications";
 import PostJob from "./pages/PostJob";
 import ViewApplications from "./pages/ViewApplications";
 import NotFound from "./pages/NotFound";
@@ -45,6 +46,7 @@ const App = () => (
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/pending-verifications" element={<PendingVerifications />} />
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
