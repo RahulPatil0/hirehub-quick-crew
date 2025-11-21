@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import {
   Table,
   TableBody,
@@ -88,14 +89,14 @@ const ViewApplications = () => {
         }
       );
 
-      if (response.ok) {
+      try {
         toast.success(`Application ${action}ed successfully`);
         fetchApplications();
-      } else {
-        toast.error(`Failed to ${action} application`);
+      } catch (error) {
+        toast.error(`Error processing application`);
       }
     } catch (error) {
-      toast.error(`Error ${action}ing application`);
+      toast.error(`Failed to ${action} application. Please try again.`);
     }
   };
 
@@ -122,7 +123,7 @@ const ViewApplications = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-4">
             <Button
@@ -154,12 +155,14 @@ const ViewApplications = () => {
           <CardHeader>
             <CardTitle>Applications Received</CardTitle>
           </CardHeader>
-          <CardContent>
-            {applications.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">No applications yet</p>
-              </div>
-            ) : (
+            <CardContent>
+              {applications.length === 0 ? (
+                <div className="text-center py-12">
+                  <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-lg font-medium mb-2">No Applications Yet</p>
+                  <p className="text-muted-foreground">Applications will appear here once workers apply to your job.</p>
+                </div>
+              ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -215,9 +218,7 @@ const ViewApplications = () => {
                         {new Date(app.appliedDate).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        <Badge className={`${getStatusColor(app.status)} border text-xs`}>
-                          {app.status}
-                        </Badge>
+                        <StatusBadge status={app.status} />
                       </TableCell>
                       <TableCell>
                         {app.status.toUpperCase() === "PENDING" && (
