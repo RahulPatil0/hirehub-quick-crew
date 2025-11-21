@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/StatusBadge";
 import { Briefcase, Plus, Users, Clock, FileText, CheckCircle, Loader2, Eye } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ProfileCard } from "@/components/ProfileCard";
@@ -99,8 +100,17 @@ const OwnerDashboard = () => {
           });
         }
       }
-    } catch (error) {
-      toast.error("Error loading dashboard data");
+    } catch (error: any) {
+      const errorMsg = error.message || "Failed to load dashboard data";
+      
+      if (errorMsg.includes("403") || errorMsg.includes("unauthorized")) {
+        toast.error("Session expired. Please login again.");
+        navigate("/auth");
+      } else if (errorMsg.includes("network") || errorMsg.includes("fetch")) {
+        toast.error("Cannot connect to server. Please check your connection.");
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -122,10 +132,11 @@ const OwnerDashboard = () => {
         toast.success("Job closed successfully");
         fetchOwnerData();
       } else {
-        toast.error("Failed to close job");
+        const errorData = await response.json().catch(() => ({}));
+        toast.error(errorData.message || "Failed to close job");
       }
-    } catch (error) {
-      toast.error("Error closing job");
+    } catch (error: any) {
+      toast.error(error.message || "Error closing job. Please try again.");
     }
   };
 
@@ -153,14 +164,23 @@ const OwnerDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Briefcase className="h-6 w-6 text-primary" />
               <span className="text-xl font-bold">HireHub</span>
             </div>
-            <Button variant="ghost" onClick={() => navigate("/")}>
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("role");
+                localStorage.removeItem("userId");
+                toast.success("Logged out successfully");
+                navigate("/");
+              }}
+            >
               Logout
             </Button>
           </div>
@@ -297,9 +317,10 @@ const OwnerDashboard = () => {
               </CardHeader>
               <CardContent>
                 {jobs.length === 0 ? (
-                  <div className="text-center py-8">
+                  <div className="text-center py-12">
+                    <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground mb-4">No jobs posted yet</p>
-                    <Button onClick={() => navigate("/owner/post-job")}>
+                    <Button onClick={() => navigate("/owner/post-job")} size="lg">
                       Post Your First Job
                     </Button>
                   </div>
@@ -325,10 +346,8 @@ const OwnerDashboard = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Badge className={`${getStatusColor(job.status)} border`}>
-                            {job.status}
-                          </Badge>
+                          <div className="flex items-center gap-3">
+                          <StatusBadge status={job.status} />
                           <Button
                             variant="outline"
                             size="sm"

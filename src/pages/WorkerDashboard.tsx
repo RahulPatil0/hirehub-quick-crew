@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Briefcase, Bell, Loader2, MapPin, Radio } from "lucide-react";
+import { Briefcase, Bell, Loader2, MapPin, Radio, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { JobCard } from "@/components/JobCard";
@@ -178,14 +178,23 @@ const WorkerDashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Briefcase className="h-6 w-6 text-primary" />
               <span className="text-xl font-bold">HireHub</span>
             </div>
-            <Button variant="ghost" onClick={() => navigate("/")}>
+            <Button 
+              variant="ghost" 
+              onClick={() => {
+                localStorage.removeItem("token");
+                localStorage.removeItem("role");
+                localStorage.removeItem("userId");
+                toast.success("Logged out successfully");
+                navigate("/");
+              }}
+            >
               Logout
             </Button>
           </div>

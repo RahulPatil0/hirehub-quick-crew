@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, MapPin, Users, DollarSign, CheckCircle } from "lucide-react";
+import { Briefcase, MapPin, Users, DollarSign, CheckCircle, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -67,16 +67,21 @@ const HireLabour = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
+      <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => navigate("/owner-dashboard")}
+                className="mr-2"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
               <Briefcase className="h-6 w-6 text-primary" />
               <span className="text-xl font-bold">HireHub</span>
             </div>
-            <Button variant="ghost" onClick={() => navigate("/owner-dashboard")}>
-              ← Back to Dashboard
-            </Button>
           </div>
         </div>
       </header>
@@ -188,14 +193,14 @@ const HireLabour = () => {
                     : "Fill the form and click search to see available workers"}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {showResults ? (
-                  <div className="space-y-4">
-                    {nearbyLabourers.map((labourer) => (
-                      <div
-                        key={labourer.id}
-                        className="p-4 border-2 border-border rounded-lg hover:border-primary transition-colors"
-                      >
+            <CardContent>
+              {showResults ? (
+                <div className="space-y-4">
+                  {nearbyLabourers.map((labourer) => (
+                    <div
+                      key={labourer.id}
+                      className="p-4 border-2 border-border rounded-lg hover:border-primary transition-all hover:shadow-md"
+                    >
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
@@ -233,9 +238,10 @@ const HireLabour = () => {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">No Workers Found</p>
                     <p className="text-muted-foreground">
-                      No search results yet. Fill in the form to find workers.
+                      Fill in the form and click search to find available workers in your area.
                     </p>
                   </div>
                 )}
