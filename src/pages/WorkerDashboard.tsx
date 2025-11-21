@@ -11,12 +11,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Briefcase, Bell, Loader2 } from "lucide-react";
+import { Briefcase, Bell, Loader2, MapPin, Radio } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { JobCard } from "@/components/JobCard";
 import { ProfileCard } from "@/components/ProfileCard";
 import { Badge } from "@/components/ui/badge";
+import { useWorkerLocation } from "@/hooks/useWorkerLocation";
+import { useJobNotifications } from "@/hooks/useJobNotifications";
 
 interface WorkerProfile {
   name: string;
@@ -62,6 +64,10 @@ const WorkerDashboard = () => {
     "New job posted: House Painting in your area",
     "Application accepted for Construction Work",
   ]);
+
+  // Live location tracking and real-time notifications
+  const locationState = useWorkerLocation(isAvailable);
+  const notificationState = useJobNotifications(isAvailable);
 
   useEffect(() => {
     fetchWorkerData();
@@ -203,7 +209,7 @@ const WorkerDashboard = () => {
                   Toggle your availability to receive instant hire requests
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div
@@ -221,12 +227,59 @@ const WorkerDashboard = () => {
                     onCheckedChange={handleAvailabilityToggle}
                   />
                 </div>
+
                 {isAvailable && (
-                  <div className="mt-4 p-4 bg-success/10 rounded-lg border border-success/20">
-                    <p className="text-sm text-success-foreground">
-                      ✓ You're now visible to employers looking for daily labour in your area
-                    </p>
-                  </div>
+                  <>
+                    <div className="p-4 bg-success/10 rounded-lg border border-success/20">
+                      <p className="text-sm text-success-foreground">
+                        ✓ You're now visible to employers looking for daily labour in your area
+                      </p>
+                    </div>
+
+                    {/* Location Status */}
+                    <div className="p-4 bg-card rounded-lg border border-border space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">Location Tracking</span>
+                        </div>
+                        <Badge variant={locationState.isTracking ? "default" : "secondary"}>
+                          {locationState.isTracking ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                      
+                      {locationState.isTracking && locationState.latitude && locationState.longitude && (
+                        <p className="text-xs text-muted-foreground">
+                          📍 {locationState.latitude.toFixed(6)}, {locationState.longitude.toFixed(6)}
+                        </p>
+                      )}
+                      
+                      {locationState.error && (
+                        <p className="text-xs text-destructive">
+                          {locationState.error}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Notification Status */}
+                    <div className="p-4 bg-card rounded-lg border border-border">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Radio className="h-4 w-4 text-primary" />
+                          <span className="text-sm font-medium">Real-time Alerts</span>
+                        </div>
+                        <Badge variant={notificationState.isConnected ? "default" : "secondary"}>
+                          {notificationState.isConnected ? "Connected" : "Disconnected"}
+                        </Badge>
+                      </div>
+                      
+                      {notificationState.error && (
+                        <p className="text-xs text-destructive mt-2">
+                          {notificationState.error}
+                        </p>
+                      )}
+                    </div>
+                  </>
                 )}
               </CardContent>
             </Card>
