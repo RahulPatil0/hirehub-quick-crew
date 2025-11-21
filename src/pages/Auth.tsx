@@ -7,55 +7,114 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Briefcase, Users } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { registerUser, loginUser } from "@/api/authApi";
 
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const roleParam = searchParams.get("role");
-  
-  const [name, setName] = useState("");
+
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
+  const [panFile, setPanFile] = useState<File | null>(null);
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [selectedRole, setSelectedRole] = useState<"owner" | "worker" | null>(
     roleParam === "owner" || roleParam === "worker" ? roleParam : null
   );
 
-  const handleSignUp = (e: React.FormEvent) => {
+  // ---------------------------------------------------
+  // SIGN UP
+  // ---------------------------------------------------
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedRole) {
       toast.error("Please select your role");
       return;
     }
 
-    // Mock sign up - in real app, this would call backend
-    toast.success("Account created successfully!");
-    
-    // Navigate to appropriate dashboard
-    if (selectedRole === "owner") {
-      navigate("/owner-dashboard");
-    } else {
-      navigate("/worker-dashboard");
+    if (!aadhaarFile || !panFile || !profilePhoto) {
+      toast.error("Please upload all required documents");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("username", username);
+      formData.append("email", email);
+      formData.append("phone", phone);
+      formData.append("password", password);
+      formData.append("role", selectedRole.toUpperCase());
+      formData.append("aadhaar", aadhaarFile);
+      formData.append("pan", panFile);
+      formData.append("profilePhoto", profilePhoto);
+
+      const response = await fetch("http://localhost:8080/api/auth/register", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Registration failed");
+      }
+
+      toast.success("Registration submitted! Your documents are pending admin verification.");
+      
+      // Clear form
+      setUsername("");
+      setEmail("");
+      setPhone("");
+      setPassword("");
+      setAadhaarFile(null);
+      setPanFile(null);
+      setProfilePhoto(null);
+
+    } catch (error: any) {
+      toast.error(error.message || "Registration failed!");
     }
   };
 
-  const handleSignIn = (e: React.FormEvent) => {
+  // ---------------------------------------------------
+  // SIGN IN
+  // ---------------------------------------------------
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedRole) {
       toast.error("Please select your role");
       return;
     }
 
-    // Mock sign in - in real app, this would call backend
-    toast.success("Signed in successfully!");
-    
-    // Navigate to appropriate dashboard
-    if (selectedRole === "owner") {
-      navigate("/owner-dashboard");
-    } else {
-      navigate("/worker-dashboard");
+    try {
+      const payload = {
+        email,
+        password,
+        role: selectedRole.toUpperCase() as "OWNER" | "WORKER" | "ADMIN",
+      };
+
+      const res = await loginUser(payload);
+
+      toast.success("Signed in successfully!");
+
+      if (res?.token) localStorage.setItem("token", res.token);
+      if (res?.role) localStorage.setItem("role", res.role);
+
+      navigate(selectedRole === "owner" ? "/owner-dashboard" : "/worker-dashboard");
+
+    } catch (error: any) {
+      const errorMsg = error.message || "Invalid email or password!";
+      
+      if (errorMsg.includes("pending") || errorMsg.includes("verification")) {
+        toast.error("Your documents are pending admin verification. Please wait for approval.");
+      } else if (errorMsg.includes("disabled") || errorMsg.includes("inactive")) {
+        toast.error("Your account has been disabled by admin. Please contact support.");
+      } else {
+        toast.error(errorMsg);
+      }
     }
   };
 
@@ -76,8 +135,10 @@ const Auth = () => {
             <CardTitle>Get Started</CardTitle>
             <CardDescription>Choose your role to continue</CardDescription>
           </CardHeader>
+
           <CardContent>
-            {/* Role Selection */}
+
+            {/* ROLE SELECTION */}
             <div className="grid grid-cols-2 gap-3 mb-6">
               <Button
                 type="button"
@@ -89,6 +150,7 @@ const Auth = () => {
                 <span className="font-semibold">I'm an Owner</span>
                 <span className="text-xs text-muted-foreground">Hire workers</span>
               </Button>
+
               <Button
                 type="button"
                 variant={selectedRole === "worker" ? "default" : "outline"}
@@ -107,12 +169,12 @@ const Auth = () => {
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
 
+              {/* SIGN IN FORM */}
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label>Email</Label>
                     <Input
-                      id="signin-email"
                       type="email"
                       placeholder="you@example.com"
                       value={email}
@@ -120,38 +182,39 @@ const Auth = () => {
                       required
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label>Password</Label>
                     <Input
-                      id="signin-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                     />
                   </div>
+
                   <Button type="submit" className="w-full" size="lg">
                     Sign In
                   </Button>
                 </form>
               </TabsContent>
 
+              {/* SIGN UP FORM */}
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name">Full Name</Label>
+                    <Label>Username</Label>       {/* UPDATED LABEL */}
                     <Input
-                      id="signup-name"
                       placeholder="John Doe"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      value={username}             // UPDATED
+                      onChange={(e) => setUsername(e.target.value)} // UPDATED
                       required
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="signup-phone">Phone Number</Label>
+                    <Label>Phone Number</Label>
                     <Input
-                      id="signup-phone"
                       type="tel"
                       placeholder="+1234567890"
                       value={phone}
@@ -159,10 +222,10 @@ const Auth = () => {
                       required
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label>Email</Label>
                     <Input
-                      id="signup-email"
                       type="email"
                       placeholder="you@example.com"
                       value={email}
@@ -170,16 +233,51 @@ const Auth = () => {
                       required
                     />
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label>Password</Label>
                     <Input
-                      id="signup-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                     />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label>Profile Photo *</Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setProfilePhoto(e.target.files?.[0] || null)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Aadhaar Card *</Label>
+                    <Input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setAadhaarFile(e.target.files?.[0] || null)}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>PAN Card *</Label>
+                    <Input
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={(e) => setPanFile(e.target.files?.[0] || null)}
+                      required
+                    />
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    * Documents will be verified by admin before account activation
+                  </p>
+
                   <Button type="submit" className="w-full" size="lg">
                     Create Account
                   </Button>
@@ -188,10 +286,7 @@ const Auth = () => {
             </Tabs>
 
             <div className="mt-6 text-center">
-              <Button
-                variant="link"
-                onClick={() => navigate("/")}
-              >
+              <Button variant="link" onClick={() => navigate("/")}>
                 ← Back to Home
               </Button>
             </div>
