@@ -10,7 +10,10 @@ import WorkerDashboard from "./pages/WorkerDashboard";
 import HireLabour from "./pages/HireLabour";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminAnalytics from "./pages/AdminAnalytics";
 import PendingVerifications from "./pages/PendingVerifications";
+import WorkerProfile from "./pages/WorkerProfile";
+import OwnerProfile from "./pages/OwnerProfile";
 import PostJob from "./pages/PostJob";
 import ViewApplications from "./pages/ViewApplications";
 import NotFound from "./pages/NotFound";
@@ -27,28 +30,20 @@ const App = () => (
           <Route path="/" element={<Landing />} />
           <Route path="/auth" element={<Auth />} />
           
-          {/* Owner Routes */}
           <Route path="/owner-dashboard" element={<OwnerDashboard />} />
-          <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+          <Route path="/owner/profile" element={<OwnerProfile />} />
           <Route path="/owner/post-job" element={<PostJob />} />
-          <Route path="/owner/jobs" element={<OwnerDashboard />} />
           <Route path="/owner/jobs/:jobId/applications" element={<ViewApplications />} />
           
-          {/* Worker Routes */}
           <Route path="/worker-dashboard" element={<WorkerDashboard />} />
-          <Route path="/worker/dashboard" element={<WorkerDashboard />} />
-          <Route path="/worker/jobs" element={<WorkerDashboard />} />
-          <Route path="/worker/applications" element={<WorkerDashboard />} />
-          
-          {/* Other Routes */}
+          <Route path="/worker/profile" element={<WorkerProfile />} />
           <Route path="/hire-labour" element={<HireLabour />} />
           
-          {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="/admin/pending-verifications" element={<PendingVerifications />} />
           
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
