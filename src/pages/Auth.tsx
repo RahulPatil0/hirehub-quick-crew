@@ -106,14 +106,16 @@ const Auth = () => {
       navigate(selectedRole === "owner" ? "/owner-dashboard" : "/worker-dashboard");
 
     } catch (error: any) {
-      const errorMsg = error.message || "Invalid email or password!";
+      const errorMsg = error.message || "";
       
       if (errorMsg.includes("pending") || errorMsg.includes("verification")) {
         toast.error("Your documents are pending admin verification. Please wait for approval.");
       } else if (errorMsg.includes("disabled") || errorMsg.includes("inactive")) {
         toast.error("Your account has been disabled by admin. Please contact support.");
+      } else if (errorMsg.includes("role") || errorMsg.includes("Role")) {
+        toast.error("Invalid email, password, or role. Please check your credentials.");
       } else {
-        toast.error(errorMsg);
+        toast.error("Invalid email, password, or role. Please try again.");
       }
     }
   };
