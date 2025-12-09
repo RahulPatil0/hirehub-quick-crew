@@ -85,7 +85,7 @@ const Auth = () => {
     e.preventDefault();
 
     if (!selectedRole) {
-      toast.error("Please select your role");
+      toast.error("Please select your role (Owner or Worker)");
       return;
     }
 
@@ -93,29 +93,43 @@ const Auth = () => {
       const payload = {
         email,
         password,
-        role: selectedRole.toUpperCase() as "OWNER" | "WORKER" | "ADMIN",
+        role: selectedRole.toUpperCase() as "OWNER" | "WORKER",
       };
 
       const res = await loginUser(payload);
 
+      // Validate that the returned role matches the selected role
+      const returnedRole = res?.role?.toUpperCase();
+      const expectedRole = selectedRole.toUpperCase();
+      
+      if (returnedRole && returnedRole !== expectedRole) {
+        toast.error(`This account is registered as ${returnedRole}. Please select the correct role.`);
+        return;
+      }
+
+      // Store auth data
+      if (res?.token) localStorage.setItem("token", res.token);
+      if (res?.role) localStorage.setItem("role", res.role.toUpperCase());
+      if (res?.userId) localStorage.setItem("userId", res.userId.toString());
+
       toast.success("Signed in successfully!");
 
-      if (res?.token) localStorage.setItem("token", res.token);
-      if (res?.role) localStorage.setItem("role", res.role);
-
-      navigate(selectedRole === "owner" ? "/owner-dashboard" : "/worker-dashboard");
+      // Navigate based on verified role
+      navigate(expectedRole === "OWNER" ? "/owner-dashboard" : "/worker-dashboard");
 
     } catch (error: any) {
-      const errorMsg = error.message || "";
+      const errorMsg = (error.message || "").toLowerCase();
       
       if (errorMsg.includes("pending") || errorMsg.includes("verification")) {
         toast.error("Your documents are pending admin verification. Please wait for approval.");
       } else if (errorMsg.includes("disabled") || errorMsg.includes("inactive")) {
         toast.error("Your account has been disabled by admin. Please contact support.");
-      } else if (errorMsg.includes("role") || errorMsg.includes("Role")) {
+      } else if (errorMsg.includes("role") || errorMsg.includes("mismatch")) {
+        toast.error(`Invalid credentials for ${selectedRole.toUpperCase()} role. Check your role selection.`);
+      } else if (errorMsg.includes("not found") || errorMsg.includes("invalid")) {
         toast.error("Invalid email, password, or role. Please check your credentials.");
       } else {
-        toast.error("Invalid email, password, or role. Please try again.");
+        toast.error("Login failed. Please verify your email, password, and selected role.");
       }
     }
   };
