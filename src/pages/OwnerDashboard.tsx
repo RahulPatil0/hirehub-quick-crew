@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Briefcase, Plus, Users, Clock, FileText, CheckCircle, Loader2, Eye } from "lucide-react";
+import { Briefcase, Plus, Users, Clock, FileText, CheckCircle, Loader2, Eye, LogOut, User, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ProfileCard } from "@/components/ProfileCard";
 import { toast } from "sonner";
@@ -58,7 +58,6 @@ const OwnerDashboard = () => {
     }
 
     try {
-      // Fetch owner profile
       const profileRes = await fetch("http://localhost:8080/api/owner/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -67,30 +66,19 @@ const OwnerDashboard = () => {
         setProfile(profileData);
       }
 
-      // Fetch owner jobs
       const ownerId = localStorage.getItem("userId");
       if (ownerId) {
         const jobsRes = await fetch(
           `http://localhost:8080/api/jobs/owner/${ownerId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         if (jobsRes.ok) {
           const jobsData = await jobsRes.json();
           setJobs(jobsData);
 
-          // Calculate stats
-          const activeJobs = jobsData.filter(
-            (job: Job) => job.status.toUpperCase() === "OPEN"
-          ).length;
-          const totalApplications = jobsData.reduce(
-            (sum: number, job: Job) => sum + (job.applicationsCount || 0),
-            0
-          );
-          const completedJobs = jobsData.filter(
-            (job: Job) => job.status.toUpperCase() === "CLOSED"
-          ).length;
+          const activeJobs = jobsData.filter((job: Job) => job.status.toUpperCase() === "OPEN").length;
+          const totalApplications = jobsData.reduce((sum: number, job: Job) => sum + (job.applicationsCount || 0), 0);
+          const completedJobs = jobsData.filter((job: Job) => job.status.toUpperCase() === "CLOSED").length;
 
           setStats({
             totalJobs: jobsData.length,
@@ -101,16 +89,7 @@ const OwnerDashboard = () => {
         }
       }
     } catch (error: any) {
-      const errorMsg = error.message || "Failed to load dashboard data";
-      
-      if (errorMsg.includes("403") || errorMsg.includes("unauthorized")) {
-        toast.error("Session expired. Please login again.");
-        navigate("/auth");
-      } else if (errorMsg.includes("network") || errorMsg.includes("fetch")) {
-        toast.error("Cannot connect to server. Please check your connection.");
-      } else {
-        toast.error(errorMsg);
-      }
+      toast.error(error.message || "Failed to load dashboard data");
     } finally {
       setIsLoading(false);
     }
@@ -118,221 +97,157 @@ const OwnerDashboard = () => {
 
   const handleCloseJob = async (jobId: string) => {
     const token = localStorage.getItem("token");
-    
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/jobs/${jobId}/close`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
+      const response = await fetch(`http://localhost:8080/api/jobs/${jobId}/close`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (response.ok) {
         toast.success("Job closed successfully");
         fetchOwnerData();
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        toast.error(errorData.message || "Failed to close job");
+        toast.error("Failed to close job");
       }
     } catch (error: any) {
-      toast.error(error.message || "Error closing job. Please try again.");
+      toast.error(error.message || "Error closing job");
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toUpperCase()) {
-      case "OPEN":
-        return "bg-success/10 text-success border-success/20";
-      case "PENDING":
-        return "bg-secondary/10 text-secondary-foreground border-secondary/20";
-      case "CLOSED":
-        return "bg-muted text-muted-foreground border-border";
-      default:
-        return "bg-muted text-muted-foreground border-border";
-    }
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userId");
+    toast.success("Logged out successfully");
+    navigate("/");
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-gradient-page flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-page">
       {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
+      <header className="page-header">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Briefcase className="h-6 w-6 text-primary" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Briefcase className="h-5 w-5 text-primary" />
+              </div>
               <span className="text-xl font-bold">HireHub</span>
             </div>
-            <Button 
-              variant="ghost" 
-              onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("role");
-                localStorage.removeItem("userId");
-                toast.success("Logged out successfully");
-                navigate("/");
-              }}
-            >
-              Logout
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/owner/profile")}>
+                <User className="h-4 w-4 mr-2" />
+                Profile
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Owner Dashboard</h1>
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold mb-2">Welcome back! 👋</h1>
           <p className="text-muted-foreground">Manage your job postings and hires</p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Content */}
+        <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            {/* Analytics Cards */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <FileText className="h-5 w-5 text-primary" />
+            {/* Stats Grid */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: "Total Jobs", value: stats.totalJobs, icon: FileText, color: "primary" },
+                { label: "Active Jobs", value: stats.activeJobs, icon: Briefcase, color: "success" },
+                { label: "Applications", value: stats.applicationsReceived, icon: Users, color: "secondary" },
+                { label: "Completed", value: stats.jobsCompleted, icon: CheckCircle, color: "primary" },
+              ].map((stat, i) => (
+                <Card key={i} className="animate-fade-in-up" style={{ animationDelay: `${i * 100}ms` }}>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-xl bg-${stat.color}/10`}>
+                        <stat.icon className={`h-5 w-5 text-${stat.color}`} />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">{stat.label}</p>
+                        <p className="text-2xl font-bold">{stat.value}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Jobs</p>
-                      <p className="text-2xl font-bold">{stats.totalJobs}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-success/10">
-                      <Briefcase className="h-5 w-5 text-success" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Active Jobs</p>
-                      <p className="text-2xl font-bold">{stats.activeJobs}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-secondary/10">
-                      <Users className="h-5 w-5 text-secondary-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Applications</p>
-                      <p className="text-2xl font-bold">{stats.applicationsReceived}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-accent">
-                      <CheckCircle className="h-5 w-5 text-accent-foreground" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Completed</p>
-                      <p className="text-2xl font-bold">{stats.jobsCompleted}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
             {/* Quick Actions */}
             <div className="grid md:grid-cols-3 gap-4">
-              <Card
-                className="border-2 border-primary/20 hover:border-primary transition-colors cursor-pointer"
-                onClick={() => navigate("/owner/post-job")}
-              >
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-lg bg-primary/10">
-                      <Plus className="h-6 w-6 text-primary" />
+              {[
+                { title: "Post a Job", desc: "Create new listing", icon: Plus, color: "primary", path: "/owner/post-job" },
+                { title: "Hire Labour", desc: "Find workers nearby", icon: Users, color: "secondary", path: "/hire-labour" },
+                { title: "My Jobs", desc: "View all postings", icon: Clock, color: "success", path: "/owner/jobs" },
+              ].map((action, i) => (
+                <Card
+                  key={i}
+                  className={`cursor-pointer group border-2 border-transparent hover:border-${action.color}/30 animate-fade-in-up`}
+                  style={{ animationDelay: `${(i + 4) * 100}ms` }}
+                  onClick={() => navigate(action.path)}
+                >
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-xl bg-${action.color}/10 group-hover:scale-110 transition-transform`}>
+                        <action.icon className={`h-6 w-6 text-${action.color}`} />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold">{action.title}</h3>
+                        <p className="text-sm text-muted-foreground">{action.desc}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold">Post a Job</h3>
-                      <p className="text-sm text-muted-foreground">Create new listing</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card
-                className="border-2 border-secondary/20 hover:border-secondary transition-colors cursor-pointer"
-                onClick={() => navigate("/hire-labour")}
-              >
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-lg bg-secondary/10">
-                      <Users className="h-6 w-6 text-secondary-foreground" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">Hire Daily Labour</h3>
-                      <p className="text-sm text-muted-foreground">Find workers nearby</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card
-                className="border-2 border-success/20 hover:border-success transition-colors cursor-pointer"
-                onClick={() => navigate("/owner/jobs")}
-              >
-                <CardContent className="pt-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 rounded-lg bg-success/10">
-                      <Clock className="h-6 w-6 text-success" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">My Jobs</h3>
-                      <p className="text-sm text-muted-foreground">View all postings</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
             {/* Recent Jobs */}
-            <Card>
+            <Card className="animate-fade-in-up" style={{ animationDelay: "700ms" }}>
               <CardHeader>
-                <CardTitle>Recent Job Postings</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  Recent Job Postings
+                </CardTitle>
                 <CardDescription>Your latest job listings</CardDescription>
               </CardHeader>
               <CardContent>
                 {jobs.length === 0 ? (
                   <div className="text-center py-12">
-                    <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+                      <Briefcase className="h-8 w-8 text-muted-foreground" />
+                    </div>
                     <p className="text-muted-foreground mb-4">No jobs posted yet</p>
-                    <Button onClick={() => navigate("/owner/post-job")} size="lg">
+                    <Button onClick={() => navigate("/owner/post-job")}>
+                      <Plus className="h-4 w-4 mr-2" />
                       Post Your First Job
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     {jobs.slice(0, 5).map((job) => (
                       <div
                         key={job.id}
-                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
+                        className="flex items-center justify-between p-4 rounded-xl border border-border/50 hover:bg-accent/50 transition-colors group"
                       >
                         <div className="flex items-center gap-4 flex-1">
-                          <div className="p-3 rounded-lg bg-primary/10">
+                          <div className="p-3 rounded-xl bg-primary/10 group-hover:scale-105 transition-transform">
                             <Briefcase className="h-5 w-5 text-primary" />
                           </div>
                           <div className="flex-1">
@@ -341,27 +256,17 @@ const OwnerDashboard = () => {
                               <span>{job.skillType}</span>
                               <span>•</span>
                               <span>{job.applicationsCount || 0} applications</span>
-                              <span>•</span>
-                              <span>{new Date(job.createdDate).toLocaleDateString()}</span>
                             </div>
                           </div>
                         </div>
-                          <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3">
                           <StatusBadge status={job.status} />
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate(`/owner/jobs/${job.id}/applications`)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => navigate(`/owner/jobs/${job.id}/applications`)}>
                             <Eye className="h-4 w-4 mr-1" />
                             View
                           </Button>
                           {job.status.toUpperCase() === "OPEN" && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCloseJob(job.id)}
-                            >
+                            <Button variant="ghost" size="sm" onClick={() => handleCloseJob(job.id)}>
                               Close
                             </Button>
                           )}
@@ -375,8 +280,7 @@ const OwnerDashboard = () => {
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Profile Card */}
+          <div className="space-y-6 animate-fade-in-up" style={{ animationDelay: "800ms" }}>
             {profile && <ProfileCard profile={profile} type="owner" />}
           </div>
         </div>
