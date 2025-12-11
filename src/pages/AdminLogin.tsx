@@ -20,10 +20,8 @@ const AdminLogin = () => {
     try {
       const response = await fetch("http://localhost:8080/api/admin/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
       });
 
       if (!response.ok) {
@@ -32,13 +30,21 @@ const AdminLogin = () => {
       }
 
       const data = await response.json();
-      
-      // Save token and role to localStorage
+
+      // ❗ BLOCK NON-ADMINS
+      if (data.role !== "ADMIN") {
+        toast.error("Only ADMIN can access this panel");
+        return;
+      }
+
+      // Save token + role
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
-      
+      localStorage.setItem("userId", data.userId);
+
       toast.success("Login successful!");
-      navigate("/admin/pending-verifications");
+      navigate("/admin/pending-verifications"); // redirect only for ADMIN
+
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed. Please check your credentials.");
     } finally {
@@ -80,9 +86,9 @@ const AdminLogin = () => {
                 required
               />
             </div>
-            <Button 
-              type="submit" 
-              className="w-full" 
+            <Button
+              type="submit"
+              className="w-full"
               size="lg"
               disabled={isLoading}
             >
