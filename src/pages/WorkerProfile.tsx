@@ -10,18 +10,16 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
   User,
-  Mail,
-  Phone,
-  MapPin,
-  Briefcase,
   Award,
   Camera,
   Save,
   Clock,
   DollarSign,
+  MapPin,
+  Briefcase,
 } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 const WorkerProfile = () => {
   const navigate = useNavigate();
@@ -124,46 +122,26 @@ const WorkerProfile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/worker-dashboard")}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
-            <h1 className="text-xl font-bold">Worker Profile</h1>
-            <div className="w-32" />
-          </div>
-        </div>
-      </header>
+      <PageHeader title="Worker Profile" showBack backTo="/worker-dashboard" />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Profile Card */}
-          <div className="lg:col-span-1">
-            <Card className="border-primary/20 shadow-soft">
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="shadow-soft animate-fade-in">
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center">
                   <div className="relative">
-                    <Avatar className="h-32 w-32">
+                    <Avatar className="h-32 w-32 border-4 border-primary/20">
                       <AvatarImage src="" />
-                      <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                        {profile.name
-                          ?.split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase() || "W"}
+                      <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary">
+                        {profile.name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "W"}
                       </AvatarFallback>
                     </Avatar>
                     <Button
                       size="icon"
                       variant="secondary"
-                      className="absolute bottom-0 right-0 rounded-full h-10 w-10"
+                      className="absolute bottom-0 right-0 rounded-full h-10 w-10 shadow-md"
                     >
                       <Camera className="h-4 w-4" />
                     </Button>
@@ -178,7 +156,7 @@ const WorkerProfile = () => {
             </Card>
 
             {/* Quick Stats */}
-            <Card className="mt-6 border-primary/20 shadow-soft">
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.1s" }}>
               <CardHeader>
                 <CardTitle className="text-lg">Quick Stats</CardTitle>
               </CardHeader>
@@ -204,10 +182,12 @@ const WorkerProfile = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Profile Information */}
-            <Card className="border-primary/20 shadow-soft">
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.1s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
                   Profile Information
                 </CardTitle>
               </CardHeader>
@@ -284,10 +264,12 @@ const WorkerProfile = () => {
             </Card>
 
             {/* Skills */}
-            <Card className="border-primary/20 shadow-soft">
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.2s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Award className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-lg bg-secondary/10">
+                    <Award className="h-5 w-5 text-secondary-foreground" />
+                  </div>
                   Skills
                 </CardTitle>
               </CardHeader>
@@ -306,7 +288,7 @@ const WorkerProfile = () => {
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground"
+                      className="cursor-pointer hover:bg-destructive hover:text-destructive-foreground transition-colors"
                       onClick={() => handleRemoveSkill(skill)}
                     >
                       {skill} ×
@@ -317,24 +299,28 @@ const WorkerProfile = () => {
             </Card>
 
             {/* Work History */}
-            <Card className="border-primary/20 shadow-soft">
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-lg bg-success/10">
+                    <Briefcase className="h-5 w-5 text-success" />
+                  </div>
                   Work History
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {workHistory.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No work history yet. Start applying for jobs!
-                  </p>
+                  <div className="text-center py-12">
+                    <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">No Work History</p>
+                    <p className="text-muted-foreground">Start applying for jobs to build your history!</p>
+                  </div>
                 ) : (
                   <div className="space-y-4">
                     {workHistory.map((job, index) => (
                       <div
                         key={index}
-                        className="p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
+                        className="p-4 border border-border rounded-xl hover:bg-accent/50 transition-colors"
                       >
                         <div className="flex items-start justify-between">
                           <div className="space-y-1">
@@ -365,7 +351,7 @@ const WorkerProfile = () => {
             </Card>
 
             {/* Save Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end animate-fade-in" style={{ animationDelay: "0.4s" }}>
               <Button
                 onClick={handleSaveProfile}
                 disabled={isLoading}

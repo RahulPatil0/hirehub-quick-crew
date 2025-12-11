@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -13,8 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LocationPicker } from "@/components/LocationPicker";
-import { Briefcase, ArrowLeft } from "lucide-react";
+import { FileText, Users, Clock, DollarSign, Zap } from "lucide-react";
 import { toast } from "sonner";
+import PageHeader from "@/components/PageHeader";
 
 interface LocationData {
   latitude?: number;
@@ -65,7 +66,6 @@ const PostJob = () => {
   const jobTypes = ["One-Time", "Daily", "Monthly"];
   const urgencyLevels = ["Low", "Medium", "High"];
 
-  // 🔥 Submit
   const handleSubmit = async (e: React.FormEvent, isDraft = false) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -100,16 +100,13 @@ const PostJob = () => {
           duration: formData.duration,
           startDate: formData.startDate,
           budgetPerWorker: Number(formData.budgetPerWorker),
-
-          // 🔥 Correct backend mapping
           address: formData.location.address,
           city: formData.location.city,
           state: formData.location.state,
           pincode: formData.location.pincode,
           latitude: formData.location.latitude,
           longitude: formData.location.longitude,
-
-          notes: formData.description, // reusing description as notes
+          notes: formData.description,
           status: isDraft ? "DRAFT" : "OPEN",
         }),
       });
@@ -130,33 +127,31 @@ const PostJob = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* HEADER */}
-      <header className="border-b bg-card sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/owner-dashboard")}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <Briefcase className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">HireHub</span>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
+      <PageHeader title="Post a Job" showBack backTo="/owner-dashboard" />
 
-      {/* MAIN */}
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-3">Post a Job</h1>
-        <p className="text-muted-foreground mb-8">Fill in all job details below</p>
+        {/* Page Title */}
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Post a New Job
+          </h1>
+          <p className="text-muted-foreground">Fill in all job details to find the perfect workers</p>
+        </div>
 
         <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-6">
-          <Card>
+          {/* Job Details Card */}
+          <Card className="shadow-soft animate-fade-in">
             <CardHeader>
-              <CardTitle>Job Details</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <FileText className="h-5 w-5 text-primary" />
+                </div>
+                Job Details
+              </CardTitle>
+              <CardDescription>Basic information about the job</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-
-              {/* Title */}
               <div>
                 <Label>Job Title *</Label>
                 <Input
@@ -164,10 +159,10 @@ const PostJob = () => {
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder="e.g. House Painting Needed"
+                  className="mt-1.5"
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <Label>Description *</Label>
                 <Textarea
@@ -175,19 +170,19 @@ const PostJob = () => {
                   rows={4}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Explain the job details..."
+                  placeholder="Explain the job details, requirements, and expectations..."
+                  className="mt-1.5"
                 />
               </div>
 
-              {/* Skill + Workers */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Skill Type *</Label>
                   <Select
                     value={formData.skillType}
                     onValueChange={(value) => setFormData({ ...formData, skillType: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1.5">
                       <SelectValue placeholder="Select skill" />
                     </SelectTrigger>
                     <SelectContent>
@@ -201,26 +196,29 @@ const PostJob = () => {
                 </div>
 
                 <div>
-                  <Label>Required Workers *</Label>
+                  <Label className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    Required Workers *
+                  </Label>
                   <Input
                     type="number"
                     min={1}
                     required
                     value={formData.requiredWorkers}
                     onChange={(e) => setFormData({ ...formData, requiredWorkers: e.target.value })}
+                    className="mt-1.5"
                   />
                 </div>
               </div>
 
-              {/* Job Type + Urgency */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Job Type *</Label>
                   <Select
                     value={formData.jobType}
                     onValueChange={(value) => setFormData({ ...formData, jobType: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1.5">
                       <SelectValue placeholder="Select job type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -234,12 +232,15 @@ const PostJob = () => {
                 </div>
 
                 <div>
-                  <Label>Urgency *</Label>
+                  <Label className="flex items-center gap-1">
+                    <Zap className="h-4 w-4" />
+                    Urgency *
+                  </Label>
                   <Select
                     value={formData.urgency}
                     onValueChange={(value) => setFormData({ ...formData, urgency: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1.5">
                       <SelectValue placeholder="Urgency" />
                     </SelectTrigger>
                     <SelectContent>
@@ -253,14 +254,17 @@ const PostJob = () => {
                 </div>
               </div>
 
-              {/* Duration + Date */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label>Duration *</Label>
+                  <Label className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    Duration *
+                  </Label>
                   <Input
                     value={formData.duration}
                     onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                     placeholder="e.g. 2 days"
+                    className="mt-1.5"
                   />
                 </div>
 
@@ -270,22 +274,45 @@ const PostJob = () => {
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
+                    className="mt-1.5"
                   />
                 </div>
               </div>
 
+              <div>
+                <Label className="flex items-center gap-1">
+                  <DollarSign className="h-4 w-4" />
+                  Budget per Worker (₹) *
+                </Label>
+                <Input
+                  type="number"
+                  min={0}
+                  required
+                  value={formData.budgetPerWorker}
+                  onChange={(e) => setFormData({ ...formData, budgetPerWorker: e.target.value })}
+                  placeholder="Enter budget per worker"
+                  className="mt-1.5"
+                />
+              </div>
             </CardContent>
           </Card>
 
-          {/* 🌍 LOCATION PICKER SECTION */}
-          <LocationPicker
-            location={formData.location}
-            onChange={(location) => setFormData({ ...formData, location })}
-          />
+          {/* Location Picker */}
+          <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <LocationPicker
+              location={formData.location}
+              onChange={(location) => setFormData({ ...formData, location })}
+            />
+          </div>
 
-          {/* Buttons */}
-          <div className="flex gap-4">
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 h-12 text-base font-medium"
+              size="lg"
+            >
               {isSubmitting ? "Publishing..." : "Publish Job"}
             </Button>
 
@@ -293,7 +320,8 @@ const PostJob = () => {
               type="button"
               variant="outline"
               disabled={isSubmitting}
-              className="flex-1"
+              className="flex-1 h-12 text-base"
+              size="lg"
               onClick={(e) => handleSubmit(e, true)}
             >
               Save as Draft

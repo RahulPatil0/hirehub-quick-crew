@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, MapPin, Users, DollarSign, CheckCircle, ArrowLeft } from "lucide-react";
+import { MapPin, Users, CheckCircle, Search, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import PageHeader from "@/components/PageHeader";
 
 const HireLabour = () => {
   const navigate = useNavigate();
@@ -65,30 +66,15 @@ const HireLabour = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => navigate("/owner-dashboard")}
-                className="mr-2"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <Briefcase className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">HireHub</span>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
+      <PageHeader title="Hire Daily Labour" showBack backTo="/owner-dashboard" />
 
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Hire Daily Labour</h1>
+        {/* Page Title */}
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Hire Daily Labour
+          </h1>
           <p className="text-muted-foreground">
             Find verified workers near you for short-term tasks
           </p>
@@ -96,15 +82,23 @@ const HireLabour = () => {
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Search Form */}
-          <Card className="border-2">
+          <Card className="shadow-soft border-2 animate-fade-in">
             <CardHeader>
-              <CardTitle>Job Requirements</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Search className="h-5 w-5 text-primary" />
+                </div>
+                Job Requirements
+              </CardTitle>
               <CardDescription>Fill in the details to find suitable workers</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSearch} className="space-y-6">
+              <form onSubmit={handleSearch} className="space-y-5">
                 <div className="space-y-2">
-                  <Label htmlFor="workers">Number of Labourers Required</Label>
+                  <Label htmlFor="workers" className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    Number of Labourers Required
+                  </Label>
                   <Input
                     id="workers"
                     type="number"
@@ -144,7 +138,10 @@ const HireLabour = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location" className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    Location
+                  </Label>
                   <div className="flex gap-2">
                     <Input
                       id="location"
@@ -172,8 +169,8 @@ const HireLabour = () => {
                   />
                 </div>
 
-                <Button type="submit" className="w-full" size="lg">
-                  <Users className="mr-2" />
+                <Button type="submit" className="w-full h-12 text-base font-medium" size="lg">
+                  <Users className="mr-2 h-5 w-5" />
                   Find Labour Near Me
                 </Button>
               </form>
@@ -181,10 +178,13 @@ const HireLabour = () => {
           </Card>
 
           {/* Results */}
-          <div className="space-y-4">
-            <Card className="border-2 border-primary/20">
+          <div className="space-y-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <Card className="border-2 border-primary/20 shadow-soft">
               <CardHeader>
-                <CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-success/10">
+                    <Users className="h-5 w-5 text-success" />
+                  </div>
                   {showResults ? "Available Workers Nearby" : "Search to Find Workers"}
                 </CardTitle>
                 <CardDescription>
@@ -193,18 +193,19 @@ const HireLabour = () => {
                     : "Fill the form and click search to see available workers"}
                 </CardDescription>
               </CardHeader>
-            <CardContent>
-              {showResults ? (
-                <div className="space-y-4">
-                  {nearbyLabourers.map((labourer) => (
-                    <div
-                      key={labourer.id}
-                      className="p-4 border-2 border-border rounded-lg hover:border-primary transition-all hover:shadow-md"
-                    >
+              <CardContent>
+                {showResults ? (
+                  <div className="space-y-4">
+                    {nearbyLabourers.map((labourer, index) => (
+                      <div
+                        key={labourer.id}
+                        className="p-4 border-2 border-border rounded-xl hover:border-primary/50 transition-all hover:shadow-md animate-fade-in"
+                        style={{ animationDelay: `${index * 0.1}s` }}
+                      >
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-semibold">{labourer.name}</h3>
+                              <h3 className="font-semibold text-lg">{labourer.name}</h3>
                               {labourer.verified && (
                                 <CheckCircle className="h-4 w-4 text-success" />
                               )}
@@ -214,8 +215,9 @@ const HireLabour = () => {
                             </Badge>
                           </div>
                           <div className="text-right">
-                            <div className="text-xl font-bold text-primary">
-                              ⭐ {labourer.rating}
+                            <div className="flex items-center gap-1 text-xl font-bold text-primary">
+                              <Star className="h-5 w-5 fill-primary" />
+                              {labourer.rating}
                             </div>
                           </div>
                         </div>
@@ -226,7 +228,7 @@ const HireLabour = () => {
                         </div>
 
                         <Button
-                          variant="success"
+                          variant="default"
                           size="sm"
                           className="w-full"
                           onClick={() => handleSendRequest(labourer)}
@@ -237,10 +239,10 @@ const HireLabour = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-12">
+                  <div className="text-center py-16">
                     <Users className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
-                    <p className="text-lg font-medium mb-2">No Workers Found</p>
-                    <p className="text-muted-foreground">
+                    <p className="text-xl font-medium mb-2">No Workers Found</p>
+                    <p className="text-muted-foreground max-w-md mx-auto">
                       Fill in the form and click search to find available workers in your area.
                     </p>
                   </div>
