@@ -6,7 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Shield, Users, Briefcase, UserCheck, LogOut, Eye, Loader2 } from "lucide-react";
+import { Shield, Users, Briefcase, UserCheck, Eye, Loader2, BarChart3, FileCheck } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 interface User {
   id: string;
@@ -49,31 +50,8 @@ const AdminDashboard = () => {
       navigate("/admin/login");
       return;
     }
-
-    // Redirect to pending verifications if there are any
-    checkPendingVerifications();
     fetchDashboardData();
   }, [navigate]);
-
-  const checkPendingVerifications = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    try {
-      const response = await fetch("http://localhost:8080/api/admin/pending-users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.length > 0) {
-          // Optionally redirect to pending verifications on first login
-          // navigate("/admin/pending-verifications");
-        }
-      }
-    } catch (error) {
-      // Silent fail
-    }
-  };
 
   const fetchDashboardData = async () => {
     const token = localStorage.getItem("token");
@@ -85,7 +63,6 @@ const AdminDashboard = () => {
     try {
       setIsLoading(true);
       
-      // Fetch owners
       const ownersRes = await fetch("http://localhost:8080/api/admin/owners", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -94,7 +71,6 @@ const AdminDashboard = () => {
         setOwners(ownersData);
       }
 
-      // Fetch workers
       const workersRes = await fetch("http://localhost:8080/api/admin/workers", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -103,11 +79,10 @@ const AdminDashboard = () => {
         setWorkers(workersData);
       }
 
-      // Update stats
       setStats({
         totalWorkers: workers.length,
         totalOwners: owners.length,
-        totalJobs: 0, // Will be updated when backend provides this
+        totalJobs: 0,
       });
     } catch (error) {
       toast.error("Failed to fetch dashboard data");
@@ -201,234 +176,250 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    localStorage.removeItem("userId");
-    toast.success("Logged out successfully");
-    navigate("/admin/login");
-  };
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Loading dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
-      <div className="container mx-auto p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-              <Shield className="w-6 h-6 text-primary" />
+    <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
+      <PageHeader title="Admin Dashboard" showLogout />
+
+      <div className="container mx-auto px-4 py-8">
+        {/* Page Title */}
+        <div className="mb-8 animate-fade-in">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="p-3 rounded-xl bg-primary/10">
+              <Shield className="h-8 w-8 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                Admin Dashboard
+              </h1>
               <p className="text-muted-foreground">HireHub Management Panel</p>
             </div>
           </div>
-          <Button onClick={handleLogout} variant="outline">
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card className="shadow-elegant">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <Card className="shadow-soft animate-fade-in hover:shadow-medium transition-shadow">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Workers</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Users className="h-4 w-4 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{workers.length}</div>
+              <div className="text-3xl font-bold text-primary">{workers.length}</div>
             </CardContent>
           </Card>
-          <Card className="shadow-elegant">
+
+          <Card className="shadow-soft animate-fade-in hover:shadow-medium transition-shadow" style={{ animationDelay: "0.1s" }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Owners</CardTitle>
-              <UserCheck className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-secondary/10">
+                <UserCheck className="h-4 w-4 text-secondary-foreground" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{owners.length}</div>
+              <div className="text-3xl font-bold text-primary">{owners.length}</div>
             </CardContent>
           </Card>
-          <Card className="shadow-elegant">
+
+          <Card className="shadow-soft animate-fade-in hover:shadow-medium transition-shadow" style={{ animationDelay: "0.2s" }}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
-              <Briefcase className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-lg bg-success/10">
+                <Briefcase className="h-4 w-4 text-success" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">{stats.totalJobs}</div>
+              <div className="text-3xl font-bold text-primary">{stats.totalJobs}</div>
             </CardContent>
           </Card>
+
           <Card 
-            className="shadow-elegant cursor-pointer hover:shadow-lg transition-shadow border-2 border-primary/20"
+            className="shadow-soft cursor-pointer hover:shadow-medium transition-all border-2 border-primary/20 animate-fade-in"
+            style={{ animationDelay: "0.3s" }}
             onClick={() => navigate("/admin/pending-verifications")}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Pending Verifications</CardTitle>
-              <UserCheck className="h-4 w-4 text-primary" />
+              <div className="p-2 rounded-lg bg-destructive/10">
+                <FileCheck className="h-4 w-4 text-destructive" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">View</div>
-              <p className="text-xs text-muted-foreground mt-1">Review documents</p>
+              <div className="text-3xl font-bold text-primary">View</div>
+              <p className="text-xs text-muted-foreground mt-1">Review documents →</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          <Card className="shadow-soft">
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin/pending-verifications")}
+                className="gap-2"
+              >
+                <FileCheck className="h-4 w-4" />
+                Pending Verifications
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/admin/analytics")}
+                className="gap-2"
+              >
+                <BarChart3 className="h-4 w-4" />
+                View Analytics
+              </Button>
             </CardContent>
           </Card>
         </div>
 
         {/* Owners Section */}
-        <Card className="shadow-elegant">
+        <Card className="shadow-soft mb-8 animate-fade-in" style={{ animationDelay: "0.3s" }}>
           <CardHeader>
-            <CardTitle>Owners</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-secondary/10">
+                <UserCheck className="h-5 w-5 text-secondary-foreground" />
+              </div>
+              Owners
+            </CardTitle>
             <CardDescription>Manage all registered owners</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Jobs</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {owners.length === 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      No owners found
-                    </TableCell>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Jobs</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ) : (
-                  owners.map((owner) => (
-                    <TableRow key={owner.id}>
-                      <TableCell className="font-medium">{owner.username}</TableCell>
-                      <TableCell>{owner.email}</TableCell>
-                      <TableCell>{owner.phone}</TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          owner.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        }`}>
-                          {owner.status || "ACTIVE"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleViewJobs(owner)}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          View Jobs
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleActivate("owners", owner.id)}
-                          >
-                            Activate
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeactivate("owners", owner.id)}
-                          >
-                            Deactivate
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete("owners", owner.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {owners.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                        No owners found
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    owners.map((owner) => (
+                      <TableRow key={owner.id} className="hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-medium">{owner.username}</TableCell>
+                        <TableCell>{owner.email}</TableCell>
+                        <TableCell>{owner.phone}</TableCell>
+                        <TableCell>
+                          <Badge variant={owner.status === "ACTIVE" ? "default" : "secondary"}>
+                            {owner.status || "ACTIVE"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="outline" onClick={() => handleViewJobs(owner)} className="gap-1">
+                            <Eye className="w-3.5 h-3.5" />
+                            View
+                          </Button>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleActivate("owners", owner.id)}>
+                              Activate
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => handleDeactivate("owners", owner.id)}>
+                              Deactivate
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDelete("owners", owner.id)}>
+                              Delete
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
         {/* Workers Section */}
-        <Card className="shadow-elegant">
+        <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <CardHeader>
-            <CardTitle>Workers</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Users className="h-5 w-5 text-primary" />
+              </div>
+              Workers
+            </CardTitle>
             <CardDescription>Manage all registered workers</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {workers.length === 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      No workers found
-                    </TableCell>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
-                ) : (
-                  workers.map((worker) => (
-                    <TableRow key={worker.id}>
-                      <TableCell className="font-medium">{worker.username}</TableCell>
-                      <TableCell>{worker.email}</TableCell>
-                      <TableCell>{worker.phone}</TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          worker.status === "ACTIVE" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-                        }`}>
-                          {worker.status || "ACTIVE"}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleActivate("workers", worker.id)}
-                          >
-                            Activate
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleDeactivate("workers", worker.id)}
-                          >
-                            Deactivate
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete("workers", worker.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
+                </TableHeader>
+                <TableBody>
+                  {workers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No workers found
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    workers.map((worker) => (
+                      <TableRow key={worker.id} className="hover:bg-muted/50 transition-colors">
+                        <TableCell className="font-medium">{worker.username}</TableCell>
+                        <TableCell>{worker.email}</TableCell>
+                        <TableCell>{worker.phone}</TableCell>
+                        <TableCell>
+                          <Badge variant={worker.status === "ACTIVE" ? "default" : "secondary"}>
+                            {worker.status || "ACTIVE"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline" onClick={() => handleActivate("workers", worker.id)}>
+                              Activate
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={() => handleDeactivate("workers", worker.id)}>
+                              Deactivate
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleDelete("workers", worker.id)}>
+                              Delete
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
@@ -460,46 +451,16 @@ const AdminDashboard = () => {
                   <Card key={job.id} className="p-4 border border-border shadow-sm hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between">
                       <div className="space-y-2 flex-1">
-                        <h3 className="font-semibold text-lg text-foreground">{job.skillType}</h3>
+                        <h3 className="font-semibold text-lg">{job.skillType}</h3>
                         <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Users className="w-4 h-4" />
                             <span>Workers: {job.requiredWorkers}</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">Budget:</span>
-                            <span>₹{job.budgetPerWorker}/worker</span>
-                          </div>
-                          {job.date && (
-                            <div className="flex items-center gap-1">
-                              <span className="font-medium">Date:</span>
-                              <span>{job.date}</span>
-                            </div>
-                          )}
-                          {job.duration && (
-                            <div className="flex items-center gap-1">
-                              <span className="font-medium">Duration:</span>
-                              <span>{job.duration}</span>
-                            </div>
-                          )}
+                          <div>Budget: ₹{job.budgetPerWorker}/worker</div>
                         </div>
                       </div>
-                      <Badge
-                        variant={
-                          job.status === "OPEN"
-                            ? "default"
-                            : job.status === "PENDING"
-                            ? "secondary"
-                            : "outline"
-                        }
-                        className={`ml-4 ${
-                          job.status === "OPEN"
-                            ? "bg-green-100 text-green-800 border-green-200"
-                            : job.status === "PENDING"
-                            ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                            : "bg-red-100 text-red-800 border-red-200"
-                        }`}
-                      >
+                      <Badge variant={job.status === "OPEN" ? "default" : "secondary"}>
                         {job.status}
                       </Badge>
                     </div>

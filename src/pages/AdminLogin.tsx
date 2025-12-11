@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Shield } from "lucide-react";
+import { Shield, ArrowLeft, Loader2 } from "lucide-react";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -31,19 +31,17 @@ const AdminLogin = () => {
 
       const data = await response.json();
 
-      // ❗ BLOCK NON-ADMINS
       if (data.role !== "ADMIN") {
         toast.error("Only ADMIN can access this panel");
         return;
       }
 
-      // Save token + role
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
       localStorage.setItem("userId", data.userId);
 
       toast.success("Login successful!");
-      navigate("/admin/pending-verifications"); // redirect only for ADMIN
+      navigate("/admin/pending-verifications");
 
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Login failed. Please check your credentials.");
@@ -54,16 +52,32 @@ const AdminLogin = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-elegant">
-        <CardHeader className="text-center space-y-3">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-            <Shield className="w-8 h-8 text-primary" />
+      {/* Back Button */}
+      <Button
+        variant="ghost"
+        onClick={() => navigate("/")}
+        className="absolute top-4 left-4 gap-2"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Home
+      </Button>
+
+      <Card className="w-full max-w-md shadow-soft border-2 animate-fade-in">
+        <CardHeader className="text-center space-y-4">
+          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+            <Shield className="w-10 h-10 text-primary" />
           </div>
-          <CardTitle className="text-3xl font-bold">HireHub Admin Panel</CardTitle>
-          <CardDescription>Sign in to access the admin dashboard</CardDescription>
+          <div>
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+              Admin Panel
+            </CardTitle>
+            <CardDescription className="mt-2">
+              Sign in to access the HireHub admin dashboard
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -73,6 +87,7 @@ const AdminLogin = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-11"
               />
             </div>
             <div className="space-y-2">
@@ -84,15 +99,23 @@ const AdminLogin = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                className="h-11"
               />
             </div>
             <Button
               type="submit"
-              className="w-full"
+              className="w-full h-12 text-base font-medium"
               size="lg"
               disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : "Sign In as Admin"}
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </>
+              ) : (
+                "Sign In as Admin"
+              )}
             </Button>
           </form>
         </CardContent>

@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Briefcase, Bell, Loader2, MapPin, Radio, LogOut } from "lucide-react";
+import { Briefcase, Bell, Loader2, MapPin, Radio, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { JobCard } from "@/components/JobCard";
@@ -19,6 +19,7 @@ import { ProfileCard } from "@/components/ProfileCard";
 import { Badge } from "@/components/ui/badge";
 import { useWorkerLocation } from "@/hooks/useWorkerLocation";
 import { useJobNotifications } from "@/hooks/useJobNotifications";
+import PageHeader from "@/components/PageHeader";
 
 interface WorkerProfile {
   name: string;
@@ -169,64 +170,53 @@ const WorkerDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Briefcase className="h-6 w-6 text-primary" />
-              <span className="text-xl font-bold">HireHub</span>
-            </div>
-            <Button 
-              variant="ghost" 
-              onClick={() => {
-                localStorage.removeItem("token");
-                localStorage.removeItem("role");
-                localStorage.removeItem("userId");
-                toast.success("Logged out successfully");
-                navigate("/");
-              }}
-            >
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
+      <PageHeader title="Worker Dashboard" showLogout />
 
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Worker Dashboard</h1>
-          <p className="text-muted-foreground">Find and apply for jobs</p>
+        {/* Page Title */}
+        <div className="mb-8 animate-fade-in">
+          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Worker Dashboard
+          </h1>
+          <p className="text-muted-foreground">Find and apply for jobs near you</p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Availability Card */}
-            <Card className="border-2 border-success/20">
+            <Card className="border-2 border-success/20 shadow-soft animate-fade-in">
               <CardHeader>
-                <CardTitle>Daily Labour Availability</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-success/10">
+                    <Radio className="h-5 w-5 text-success" />
+                  </div>
+                  Daily Labour Availability
+                </CardTitle>
                 <CardDescription>
                   Toggle your availability to receive instant hire requests
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border border-border/50">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-3 h-3 rounded-full ${
+                      className={`w-3 h-3 rounded-full transition-colors ${
                         isAvailable ? "bg-success animate-pulse" : "bg-muted-foreground"
                       }`}
                     />
-                    <Label htmlFor="availability" className="text-base cursor-pointer">
+                    <Label htmlFor="availability" className="text-base cursor-pointer font-medium">
                       {isAvailable ? "Available for Hire" : "Not Available"}
                     </Label>
                   </div>
@@ -238,15 +228,15 @@ const WorkerDashboard = () => {
                 </div>
 
                 {isAvailable && (
-                  <>
-                    <div className="p-4 bg-success/10 rounded-lg border border-success/20">
-                      <p className="text-sm text-success-foreground">
+                  <div className="space-y-3 animate-fade-in">
+                    <div className="p-4 bg-success/10 rounded-xl border border-success/20">
+                      <p className="text-sm text-success font-medium">
                         ✓ You're now visible to employers looking for daily labour in your area
                       </p>
                     </div>
 
                     {/* Location Status */}
-                    <div className="p-4 bg-card rounded-lg border border-border space-y-3">
+                    <div className="p-4 bg-card rounded-xl border border-border space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-primary" />
@@ -264,17 +254,15 @@ const WorkerDashboard = () => {
                       )}
                       
                       {locationState.error && (
-                        <p className="text-xs text-destructive">
-                          {locationState.error}
-                        </p>
+                        <p className="text-xs text-destructive">{locationState.error}</p>
                       )}
                     </div>
 
                     {/* Notification Status */}
-                    <div className="p-4 bg-card rounded-lg border border-border">
+                    <div className="p-4 bg-card rounded-xl border border-border">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Radio className="h-4 w-4 text-primary" />
+                          <Bell className="h-4 w-4 text-primary" />
                           <span className="text-sm font-medium">Real-time Alerts</span>
                         </div>
                         <Badge variant={notificationState.isConnected ? "default" : "secondary"}>
@@ -283,26 +271,31 @@ const WorkerDashboard = () => {
                       </div>
                       
                       {notificationState.error && (
-                        <p className="text-xs text-destructive mt-2">
-                          {notificationState.error}
-                        </p>
+                        <p className="text-xs text-destructive mt-2">{notificationState.error}</p>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
               </CardContent>
             </Card>
 
             {/* Available Jobs */}
-            <Card>
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.1s" }}>
               <CardHeader>
-                <CardTitle>Available Jobs Near You</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                  </div>
+                  Available Jobs Near You
+                </CardTitle>
                 <CardDescription>Browse and apply for suitable opportunities</CardDescription>
               </CardHeader>
               <CardContent>
                 {availableJobs.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">No jobs available at the moment</p>
+                  <div className="text-center py-12">
+                    <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">No Jobs Available</p>
+                    <p className="text-muted-foreground">Check back later for new opportunities</p>
                   </div>
                 ) : (
                   <div className="grid gap-4">
@@ -320,45 +313,52 @@ const WorkerDashboard = () => {
             </Card>
 
             {/* My Applications */}
-            <Card>
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.2s" }}>
               <CardHeader>
-                <CardTitle>My Applications</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="p-2 rounded-lg bg-secondary/10">
+                    <User className="h-5 w-5 text-secondary-foreground" />
+                  </div>
+                  My Applications
+                </CardTitle>
                 <CardDescription>Track your job applications</CardDescription>
               </CardHeader>
               <CardContent>
                 {myApplications.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground">You haven't applied to any jobs yet</p>
+                  <div className="text-center py-12">
+                    <User className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">No Applications Yet</p>
+                    <p className="text-muted-foreground">Start applying to jobs above</p>
                   </div>
                 ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Job Title</TableHead>
-                        <TableHead>Owner</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Applied Date</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {myApplications.map((app) => (
-                        <TableRow key={app.id}>
-                          <TableCell className="font-medium">{app.jobTitle}</TableCell>
-                          <TableCell>{app.ownerName}</TableCell>
-                          <TableCell>
-                            <Badge
-                              className={`${getApplicationStatusColor(app.status)} border`}
-                            >
-                              {app.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {new Date(app.appliedDate).toLocaleDateString()}
-                          </TableCell>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Job Title</TableHead>
+                          <TableHead>Owner</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Applied Date</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {myApplications.map((app) => (
+                          <TableRow key={app.id} className="hover:bg-muted/50 transition-colors">
+                            <TableCell className="font-medium">{app.jobTitle}</TableCell>
+                            <TableCell>{app.ownerName}</TableCell>
+                            <TableCell>
+                              <Badge className={`${getApplicationStatusColor(app.status)} border`}>
+                                {app.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {new Date(app.appliedDate).toLocaleDateString()}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </CardContent>
             </Card>
@@ -368,13 +368,32 @@ const WorkerDashboard = () => {
           <div className="space-y-6">
             {/* Profile Card */}
             {profile && (
-              <ProfileCard profile={profile} type="worker" />
+              <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+                <ProfileCard profile={profile} type="worker" />
+              </div>
             )}
 
-            {/* Notifications */}
-            <Card>
+            {/* Quick Actions */}
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.2s" }}>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-lg">Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2 hover:bg-primary/5 hover:border-primary/30 transition-all"
+                  onClick={() => navigate("/worker-profile")}
+                >
+                  <User className="h-4 w-4" />
+                  Edit Profile
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Notifications */}
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.3s" }}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Bell className="h-5 w-5 text-primary" />
                   Notifications
                 </CardTitle>
@@ -387,7 +406,7 @@ const WorkerDashboard = () => {
                     {notifications.map((notification, index) => (
                       <div
                         key={index}
-                        className="p-3 bg-accent/50 rounded-lg text-sm border border-border"
+                        className="p-3 bg-accent/50 rounded-lg text-sm border border-border hover:bg-accent/70 transition-colors"
                       >
                         {notification}
                       </div>

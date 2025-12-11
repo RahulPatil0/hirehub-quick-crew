@@ -11,19 +11,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Briefcase,
   Building2,
   Camera,
   Save,
   Calendar,
   Users,
-  CheckCircle,
+  MapPin,
+  Briefcase,
 } from "lucide-react";
+import PageHeader from "@/components/PageHeader";
 
 const OwnerProfile = () => {
   const navigate = useNavigate();
@@ -114,51 +110,31 @@ const OwnerProfile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-accent/5 to-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border shadow-sm">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/owner-dashboard")}
-              className="gap-2"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Dashboard
-            </Button>
-            <h1 className="text-xl font-bold">Business Profile</h1>
-            <div className="w-32" />
-          </div>
-        </div>
-      </header>
+      <PageHeader title="Business Profile" showBack backTo="/owner-dashboard" />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Profile Card */}
-          <div className="lg:col-span-1">
-            <Card className="border-primary/20 shadow-soft">
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="shadow-soft animate-fade-in">
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center">
                   <div className="relative">
-                    <Avatar className="h-32 w-32">
+                    <Avatar className="h-32 w-32 border-4 border-primary/20">
                       <AvatarImage src="" />
-                      <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                        {profile.companyName
-                          ?.split(" ")
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase() || "C"}
+                      <AvatarFallback className="text-2xl bg-gradient-to-br from-primary/20 to-primary/10 text-primary">
+                        {profile.companyName?.split(" ").map((n) => n[0]).join("").toUpperCase() || "C"}
                       </AvatarFallback>
                     </Avatar>
                     <Button
                       size="icon"
                       variant="secondary"
-                      className="absolute bottom-0 right-0 rounded-full h-10 w-10"
+                      className="absolute bottom-0 right-0 rounded-full h-10 w-10 shadow-md"
                     >
                       <Camera className="h-4 w-4" />
                     </Button>
                   </div>
-                  <h2 className="mt-4 text-2xl font-bold">{profile.companyName || "Company Name"}</h2>
+                  <h2 className="mt-4 text-2xl font-bold text-center">{profile.companyName || "Company Name"}</h2>
                   <p className="text-muted-foreground">{profile.businessType || "Business Type"}</p>
                   <Badge className="mt-2" variant="default">
                     Active Employer
@@ -168,7 +144,7 @@ const OwnerProfile = () => {
             </Card>
 
             {/* Quick Stats */}
-            <Card className="mt-6 border-primary/20 shadow-soft">
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.1s" }}>
               <CardHeader>
                 <CardTitle className="text-lg">Quick Stats</CardTitle>
               </CardHeader>
@@ -194,10 +170,12 @@ const OwnerProfile = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Business Information */}
-            <Card className="border-primary/20 shadow-soft">
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.1s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Building2 className="h-5 w-5 text-primary" />
+                  </div>
                   Business Information
                 </CardTitle>
               </CardHeader>
@@ -282,17 +260,20 @@ const OwnerProfile = () => {
             </Card>
 
             {/* Job Posting History */}
-            <Card className="border-primary/20 shadow-soft">
+            <Card className="shadow-soft animate-fade-in" style={{ animationDelay: "0.2s" }}>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5 text-primary" />
+                  <div className="p-2 rounded-lg bg-success/10">
+                    <Briefcase className="h-5 w-5 text-success" />
+                  </div>
                   Job Posting History
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {jobHistory.length === 0 ? (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground mb-4">No jobs posted yet.</p>
+                  <div className="text-center py-12">
+                    <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-4">No Jobs Posted Yet</p>
                     <Button onClick={() => navigate("/owner/post-job")}>
                       Post Your First Job
                     </Button>
@@ -302,7 +283,7 @@ const OwnerProfile = () => {
                     {jobHistory.map((job, index) => (
                       <div
                         key={index}
-                        className="p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                        className="p-4 border border-border rounded-xl hover:bg-accent/50 transition-colors cursor-pointer"
                         onClick={() => navigate(`/owner/jobs/${job.id}/applications`)}
                       >
                         <div className="flex items-start justify-between">
@@ -338,7 +319,7 @@ const OwnerProfile = () => {
             </Card>
 
             {/* Save Button */}
-            <div className="flex justify-end">
+            <div className="flex justify-end animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <Button
                 onClick={handleSaveProfile}
                 disabled={isLoading}
