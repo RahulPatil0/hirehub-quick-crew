@@ -17,7 +17,7 @@ export const useWorkerLocation = (enabled: boolean) => {
   });
   
   const watchIdRef = useRef<number | null>(null);
-  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const sendLocationToBackend = async (latitude: number, longitude: number) => {
     const token = localStorage.getItem('token');
